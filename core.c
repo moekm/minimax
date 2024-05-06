@@ -3,7 +3,6 @@
 /**
  * Simple Tic Tac Toe game using the MiniMax Algorithm 
  * TODO:
- * - Update/Refactor the code "DRY" 1. when taking player input + do block
  * - Add row column number support A1 - B3 - C2
  * - Add an option to let players choose their symbols
  * - Add GUI Support
@@ -13,6 +12,7 @@
 void update(int grid[], char symbols[]);            // updates the grid
 int status(int grid[], bool *stop);                 // checks for wins 
 int selected(int grid[], int input);                // checks if the square is already selected
+void plyturn(int num, int *player);                 // calcuates the player turns from the round
 
 enum MSGID { SELECTED , NUMBERS_ONLY , WIN , DRAW , UNKOWN_ERR};
 
@@ -28,6 +28,7 @@ int main() {
 
    int  grid[9] = {0,0,0,0,0,0,0,0,0};
    int  input, round, winner;
+   int player[2]; // {playerID, playerDisplayNumber}
    char symbols[2] = {'X', 'O'};
    char MSG[][100] = {
     "\nThe square has already been selected :(",
@@ -51,39 +52,9 @@ int main() {
         bool stop = false;
        
         do {
-
-            printf("\nPlayer (1):");
-
-            if (scanf("%d", &input) != 1){
-            getchar(); // consume '\n'
-            printf(MSG[NUMBERS_ONLY]);
-            continue;
-            }
-
-            // check for allowed numbers 1-9
-            if (input > 9 || input <= 0){
-                printf(MSG[NUMBERS_ONLY]);
-                continue;
-            } 
-
-            if (selected(grid, input)){
-                redo = true;
-                update(grid, symbols);
-                printf("\n%s", MSG[SELECTED]);
-            } else {
-                redo = false;
-                grid[input - 1] = -1;  // Update player 1 = X
-                update(grid, symbols);
-            }
-
-        } while (redo);
-
-        winner = status(grid, &stop);
-        if (stop || round == 8) break; 
-
-        do {
-
-             printf("\nPlayer (2):");
+            
+            plyturn(round, player); // check whose turn it is
+            printf("\nPlayer (%d):", player[1]);
 
             if (scanf("%d", &input) != 1){
             getchar(); // consume '\n'
@@ -103,24 +74,23 @@ int main() {
                 printf("\n%s", MSG[SELECTED]);
             } else {
                 redo = false;
-                grid[input - 1] = 1; // Update player 2 = O
+                grid[input - 1] = player[0]; 
                 update(grid, symbols);
             }
-             
+
         } while (redo);
 
         winner = status(grid, &stop);
         if (stop) break; 
 
         // printf("\nround: %d", round);
-        round += 2;
+        round++;
     }
     
     if (winner == -1) printf(MSG[WIN], symbols[0]);
     if (winner == 1) printf(MSG[WIN], symbols[1]);
     if (winner == 0) printf(MSG[DRAW]);
 
-    // printf("\nwinner: %d", winner);
     return 0;
 }
 
@@ -197,4 +167,18 @@ int status(int grid[], bool *stop){
     }
 
     if (*stop) return player;
+}
+
+void plyturn(int num, int *player){
+
+    num = num % 2;
+    if (num == 1){
+        *(player) = 1; // O
+        *(player + 1) = 2; 
+    } 
+    
+      if (num == 0){
+        *(player) = -1; // X
+        *(player + 1) = 1; 
+    } 
 }
